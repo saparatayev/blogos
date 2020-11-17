@@ -42,7 +42,7 @@ func Load() {
 			log.Fatal(err)
 		}
 
-		err = db.Debug().Model(&posts[i]).Related(&posts[i].Author).Error
+		err = db.Debug().Model(&models.Post{}).Where("author_id = ?", posts[i].AuthorID).Take(&posts[i].Author).Error
 		if err != nil {
 			log.Fatal(err)
 		}
