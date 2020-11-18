@@ -3,7 +3,6 @@ package auto
 import (
 	"blogos/src/api/database"
 	"blogos/src/api/models"
-	"blogos/src/api/utils/console"
 	"log"
 )
 
@@ -42,11 +41,5 @@ func Load() {
 			log.Fatal(err)
 		}
 
-		err = db.Debug().Model(&models.Post{}).Where("author_id = ?", posts[i].AuthorID).Take(&posts[i].Author).Error
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		console.Pretty(posts[i])
 	}
 }

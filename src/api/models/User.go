@@ -2,7 +2,12 @@ package models
 
 import (
 	"blogos/src/api/security"
+	"errors"
+	"html"
+	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 type User struct {
@@ -24,4 +29,50 @@ func (u *User) BeforeSave() error {
 	u.Password = string(hashedPassword)
 
 	return nil
+}
+
+func (u *User) Prepare() {
+	u.ID = 0
+	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
+	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
+	u.CreatedAt = time.Now()
+	u.UpdatedAt = time.Now()
+}
+
+func (u *User) Validate(action string) error {
+	switch strings.ToLower(action) {
+	case "update":
+		if u.Nickname == "" {
+			return errors.New("Required nickname")
+		}
+
+		if u.Email == "" {
+			return errors.New("Required email")
+		}
+
+		if err := checkmail.ValidateFormat(u.Email); err != nil {
+			return errors.New("Invalid email")
+		}
+
+		return nil
+	default:
+		if u.Nickname == "" {
+			return errors.New("Required nickname")
+		}
+
+		if u.Password == "" {
+			return errors.New("Required password")
+		}
+
+		if u.Email == "" {
+			return errors.New("Required email")
+		}
+
+		if err := checkmail.ValidateFormat(u.Email); err != nil {
+			return errors.New("Invalid email")
+		}
+
+		return nil
+	}
+
 }
