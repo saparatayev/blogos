@@ -12,6 +12,26 @@ import (
 	"net/http"
 )
 
+func GetPosts(w http.ResponseWriter, r *http.Request) {
+	db, err := database.Connect()
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	repo := crud.NewRepositoryPostsCRUD(db)
+
+	func(postsRepository repository.PostRepository) {
+		posts, err := postsRepository.FindAll()
+		if err != nil {
+			responses.ERROR(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		responses.JSON(w, http.StatusOK, posts)
+	}(repo)
+}
+
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	post := models.Post{}
 
