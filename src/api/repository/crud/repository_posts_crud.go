@@ -3,6 +3,7 @@ package crud
 import (
 	"blogos/src/api/models"
 	"blogos/src/api/utils/channels"
+	"errors"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -117,7 +118,7 @@ func (r *repositoryPostsCRUD) FindById(pid uint64) (models.Post, error) {
 	return models.Post{}, err
 }
 
-func (r *repositoryPostsCRUD) FindById(pid uint64, post models.Post) (int64, error) {
+func (r *repositoryPostsCRUD) Update(pid uint64, post models.Post) (int64, error) {
 	var rs *gorm.DB
 
 	done := make(chan bool)
@@ -137,8 +138,14 @@ func (r *repositoryPostsCRUD) FindById(pid uint64, post models.Post) (int64, err
 	}(done)
 
 	if channels.OK(done) {
-		return post, nil
+		if rs.Error != nil {
+			if gorm.IsRecordNotFoundError(rs.Error) {
+				return 0, errors.New("Post not found")
+			}
+			return 0, rs.Error
+		}
+		return rs.RowsAffected, nil
 	}
 
-	return models.Post{}, err
+	return 0, rs.Error
 }
