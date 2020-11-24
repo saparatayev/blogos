@@ -149,3 +149,29 @@ func (r *repositoryPostsCRUD) Update(pid uint64, post models.Post) (int64, error
 
 	return 0, rs.Error
 }
+
+func (r *repositoryPostsCRUD) Delete(pid uint64) (int64, error) {
+	var rs *gorm.DB
+
+	done := make(chan bool)
+
+	go func(ch chan<- bool) {
+		defer close(ch)
+
+		rs = r.db.Debug().Model(&models.Post{}).Where("id = ?", pid).Take(&models.Post{}).Delete(&models.Post{})
+
+		ch <- true
+	}(done)
+
+	if channels.OK(done) {
+		if rs.Error != nil {
+			if gorm.IsRecordNotFoundError(rs.Error) {
+				return 0, errors.New("Post not found")
+			}
+			return 0, rs.Error
+		}
+		return rs.RowsAffected, nil
+	}
+
+	return 0, rs.Error
+}
