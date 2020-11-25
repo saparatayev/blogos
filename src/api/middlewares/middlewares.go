@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"blogos/src/api/auth"
-	"blogos/src/api/utils/console"
+	"blogos/src/api/responses"
 	"log"
 	"net/http"
 )
@@ -26,8 +26,11 @@ func SetMiddlewareJSON(next http.HandlerFunc) http.HandlerFunc {
 func SetMiddlewareAuthentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		token := auth.ExtractToken(r)
-		console.Pretty(token)
+		err := auth.TokenValid(r)
+		if err != nil {
+			responses.ERROR(w, http.StatusUnauthorized, err)
+			return
+		}
 
 		next(w, r)
 	}
